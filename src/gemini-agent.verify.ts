@@ -1,4 +1,4 @@
-import { DEFAULT_GEMINI_MODEL, GeminiAgent } from "../src/gemini-agent.ts";
+import { DEFAULT_GEMINI_MODEL, GeminiAgent } from "./gemini-agent.ts";
 
 /** Minimal no-framework assertion helper. */
 function assert(condition: boolean, message: string): void {

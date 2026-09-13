@@ -9,8 +9,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "check": "bun run typecheck && bun run lint",
-    "models": "bun scripts/list-models.ts",
-    "verify:agent": "bun scripts/verify-agent.ts"
+    "verify:agent": "bun src/gemini-agent.verify.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",
@@ -20,7 +19,6 @@
     "typescript": "^7"
   },
   "dependencies": {
-    "@google/genai": "^2.22.0",
-    "@lmstudio/sdk": "^1.5.0"
+    "@google/genai": "^2.22.0"
   }
 }
