@@ -1,5 +1,7 @@
 # first-agent
 
+Following https://cianfrani.dev/posts/building-an-ai-agent-with-typescript/
+
 To install dependencies:
 
 ```bash
