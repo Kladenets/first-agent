@@ -1,11 +1,19 @@
 /** Configuration for constructing an {@link Agent}. */
 export interface AgentConfig {
-  /** The LM Studio model key, e.g. `"qwen2.5-7b-instruct"`. */
+  /** The model ID, e.g. `"gemini-3.8-flash"`. */
   readonly model: string;
 }
 
 /** A minimal single-shot text agent. */
 export interface Agent {
-  /** Send a prompt and resolve with the model's response text. */
+  /** Send a prompt and resolve with the model's full response text. */
   run(prompt: string): Promise<string>;
+
+  /**
+   * Send a prompt and yield response text incrementally.
+   *
+   * Note this returns an async iterable directly, not a Promise, so it is
+   * consumed with `for await` without awaiting the call itself.
+   */
+  stream(prompt: string): AsyncIterable<string>;
 }

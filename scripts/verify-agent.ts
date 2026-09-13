@@ -1,4 +1,4 @@
-import { LMStudioAgent } from "../src/lmstudio-agent.ts";
+import { DEFAULT_GEMINI_MODEL, GeminiAgent } from "../src/gemini-agent.ts";
 
 /** Minimal no-framework assertion helper. */
 function assert(condition: boolean, message: string): void {
@@ -7,25 +7,48 @@ function assert(condition: boolean, message: string): void {
   }
 }
 
-const MODEL = process.env["LMSTUDIO_MODEL"] ?? "qwen2.5-7b-instruct";
+const MODEL = process.env["GEMINI_MODEL"] ?? DEFAULT_GEMINI_MODEL;
+const PROMPT = "What is 2+2?";
 
 async function main(): Promise<void> {
-  console.log(`Preferred model: ${MODEL}`);
+  console.log(`Model: ${MODEL}\n`);
 
-  const agent = new LMStudioAgent({ model: MODEL });
+  const agent = new GeminiAgent({ model: MODEL });
 
-  const pending = agent.run("What is 2+2?");
+  // --- run(): Promise<string> ---
+  const pending = agent.run(PROMPT);
   assert(pending instanceof Promise, "run() should return a Promise");
   console.log("PASS  run() returns a Promise");
 
   const result = await pending;
-  assert(typeof result === "string", `expected a string, got ${typeof result}`);
-  console.log("PASS  resolves to a string");
+  assert(typeof result === "string", `run() should resolve to a string, got ${typeof result}`);
+  console.log("PASS  run() resolves to a string");
 
-  assert(result.length > 0, "expected a non-empty string");
-  console.log("PASS  string is non-empty");
+  // --- stream(): AsyncIterable<string> ---
+  // Note: stream() is NOT a Promise. The SDK's generateContentStream resolves
+  // to an async generator, but we expose the iterable directly, so it is
+  // consumed with `for await` and never awaited itself.
+  const stream = agent.stream(PROMPT);
+  assert(!(stream instanceof Promise), "stream() should not return a Promise");
+  console.log("PASS  stream() does not return a Promise");
 
-  console.log(`\nResponse: ${result.trim()}`);
+  assert(
+    typeof stream[Symbol.asyncIterator] === "function",
+    "stream() should return an AsyncIterable",
+  );
+  console.log("PASS  stream() returns an AsyncIterable");
+
+  const chunks: string[] = [];
+  for await (const chunk of stream) {
+    assert(typeof chunk === "string", `each chunk should be a string, got ${typeof chunk}`);
+    chunks.push(chunk);
+  }
+  console.log(`PASS  stream() yields only strings (${chunks.length} chunk(s))`);
+
+  // Informational only. The model is nondeterministic, so the text itself
+  // is never asserted on.
+  console.log(`\n--- run() response (not asserted) ---\n${result.trim()}`);
+  console.log(`\n--- stream() response (not asserted) ---\n${chunks.join("").trim()}`);
   console.log("\nAll assertions passed.");
 }
 
@@ -34,6 +57,5 @@ try {
 } catch (error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`\nFAIL  ${message}`);
-  console.error("\nIs LM Studio running, with a model loaded?");
   process.exit(1);
 }

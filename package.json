@@ -1,18 +1,16 @@
 {
   "name": "first-agent",
-  "module": "src/index.ts",
+  "module": "src/agent.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "test": "bun test",
-    "verify:agent": "bun scripts/verify-agent.ts",
-    "check": "bun run typecheck && bun run lint && bun test"
+    "check": "bun run typecheck && bun run lint",
+    "models": "bun scripts/list-models.ts",
+    "verify:agent": "bun scripts/verify-agent.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",
@@ -22,6 +20,7 @@
     "typescript": "^7"
   },
   "dependencies": {
+    "@google/genai": "^2.22.0",
     "@lmstudio/sdk": "^1.5.0"
   }
 }

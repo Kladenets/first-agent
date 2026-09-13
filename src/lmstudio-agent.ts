@@ -22,6 +22,14 @@ export class LMStudioAgent implements Agent {
     return result.content;
   }
 
+  async *stream(prompt: string): AsyncGenerator<string> {
+    const model = await this.#resolveLoadedModel();
+
+    for await (const fragment of model.respond(prompt)) {
+      yield fragment.content;
+    }
+  }
+
   /**
    * Resolve an already-loaded model, preferring the configured one.
    * Falls back to the first loaded model so a stale key never forces a load.
