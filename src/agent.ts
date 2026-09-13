@@ -1,6 +1,8 @@
+import type { Conversation } from "./conversation.ts";
+
 /** Configuration for constructing an {@link Agent}. */
 export interface AgentConfig {
-  /** The model ID, e.g. `"gemini-3.8-flash"`. */
+  /** The model ID, e.g. `"gemini-3.5-flash-lite"`. */
   readonly model: string;
 }
 
@@ -16,4 +18,7 @@ export interface Agent {
    * consumed with `for await` without awaiting the call itself.
    */
   stream(prompt: string): AsyncIterable<string>;
+
+  /** Access the conversation history. */
+  getConversation(): Conversation;
 }
