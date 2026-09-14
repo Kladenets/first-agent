@@ -1,9 +1,13 @@
 import type { Conversation } from "./conversation.ts";
+import type { Tool } from "./tools.ts";
 
 /** Configuration for constructing an {@link Agent}. */
 export interface AgentConfig {
   /** The model ID, e.g. `"gemini-3.5-flash-lite"`. */
   readonly model: string;
+
+  /** Tools the model may call. Omit for plain text generation. */
+  readonly tools?: Tool[];
 }
 
 /** A minimal single-shot text agent. */

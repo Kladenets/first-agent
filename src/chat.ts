@@ -1,4 +1,5 @@
 import { DEFAULT_GEMINI_MODEL, GeminiAgent } from "./gemini-agent.ts";
+import { ActivityTool, WeatherTool } from "./tools.ts";
 
 /**
  * Interactive chat session.
@@ -11,9 +12,13 @@ import { DEFAULT_GEMINI_MODEL, GeminiAgent } from "./gemini-agent.ts";
 
 const MODEL = process.env["GEMINI_MODEL"] ?? DEFAULT_GEMINI_MODEL;
 
-const agent = new GeminiAgent({ model: MODEL });
+const agent = new GeminiAgent({
+  model: MODEL,
+  tools: [new WeatherTool(), new ActivityTool()],
+});
 
 console.log(`Model: ${MODEL}`);
+console.log("Tools: get_weather, get_activity");
 console.log("Commands: /history, /exit  (or Ctrl+C)\n");
 
 process.stdout.write("you> ");
