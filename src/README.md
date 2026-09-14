@@ -5,11 +5,16 @@ A minimal agent over the Google Gemini API.
 | file                     | role                                                    |
 | ------------------------ | ------------------------------------------------------- |
 | `agent.ts`               | `Agent` and `AgentConfig` interfaces — the contract      |
+| `conversation.ts`        | `Conversation` and `Message` — the history               |
 | `gemini-agent.ts`        | `GeminiAgent` — the implementation                       |
 | `gemini-agent.verify.ts` | no-framework test for `GeminiAgent`                      |
+| `gemini-agent.troll.ts`  | demo: conversation history is forgeable                  |
+| `chat.ts`                | interactive chat loop                                    |
 
 ```bash
-bun run verify:agent   # runs gemini-agent.verify.ts (needs GEMINI_API_KEY)
+bun run chat           # interactive session (needs GEMINI_API_KEY)
+bun run agent:verify   # runs gemini-agent.verify.ts
+bun run agent:troll    # runs gemini-agent.troll.ts
 bun run check          # typecheck + lint
 ```
 

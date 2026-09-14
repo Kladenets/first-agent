@@ -9,7 +9,9 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "check": "bun run typecheck && bun run lint",
-    "verify:agent": "bun src/gemini-agent.verify.ts"
+    "chat": "bun src/chat.ts",
+    "agent:verify": "bun src/gemini-agent.verify.ts",
+    "agent:troll": "bun src/gemini-agent.troll.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",
