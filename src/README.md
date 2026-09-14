@@ -6,8 +6,10 @@ A minimal agent over the Google Gemini API.
 | ------------------------ | ------------------------------------------------------- |
 | `agent.ts`               | `Agent` and `AgentConfig` interfaces — the contract      |
 | `conversation.ts`        | `Conversation` and `Message` — the history               |
+| `tools.ts`               | `Tool` interface, `WeatherTool`, `ActivityTool`          |
 | `gemini-agent.ts`        | `GeminiAgent` — the implementation                       |
 | `gemini-agent.verify.ts` | no-framework test for `GeminiAgent`                      |
+| `tools.verify.ts`        | no-framework test for tool calling                       |
 | `gemini-agent.troll.ts`  | demo: conversation history is forgeable                  |
 | `chat.ts`                | interactive chat loop                                    |
 
@@ -21,9 +23,15 @@ bun run check          # typecheck + lint
 ## The contract
 
 ```ts
+export interface AgentConfig {
+  readonly model: string;
+  readonly tools?: Tool[];
+}
+
 export interface Agent {
   run(prompt: string): Promise<string>;
   stream(prompt: string): AsyncIterable<string>;
+  getConversation(): Conversation;
 }
 ```
 
@@ -154,6 +162,89 @@ loop. An empty stream is silent — it yields nothing and completes normally.
 
 Three things end a stream: normal completion (`done: true`), `break` from the
 consumer, and a throw. See `examples/03-stream-endings.ts`.
+
+---
+
+## Tools
+
+Pass tools on the config and `run()` switches to the tool-calling path:
+
+```ts
+const agent = new GeminiAgent({
+  model: DEFAULT_GEMINI_MODEL,
+  tools: [new WeatherTool(), new ActivityTool()],
+});
+
+const answer = await agent.run("What's the weather, and what should I do?");
+```
+
+Omit `tools` and `run()` behaves exactly as before.
+
+### No Zod
+
+Gemini takes **plain JSON Schema**, and `Tool.parameters` already is one, so
+`#toolDeclarations()` is a direct mapping with no conversion step and no extra
+dependency:
+
+```ts
+{ type: "function", name: tool.name, description: tool.description,
+  parameters: tool.parameters }
+```
+
+Zod is an LM Studio requirement. It is not used here, and `zod` is not even a
+runtime dependency of `@google/genai`.
+
+### The call loop
+
+`#generateWithTools()` sends the declarations, then while the model asks for
+calls, executes them and feeds results back:
+
+1. `interactions.create({ ..., tools })`
+2. Filter `interaction.steps` for `type === "function_call"`
+3. For each call, match `call.name` against a registered tool and run
+   `tool.execute(call.arguments)`
+4. Send the results back as `function_result` items keyed by `call_id`, with
+   `previous_interaction_id` linking the turns
+5. Repeat until no calls remain, capped at `MAX_TOOL_TURNS` (5)
+
+Dispatch is by name, so the agent works with **any** `Tool` implementation —
+`tools.verify.ts` proves this by wrapping both tools in a `SpyTool` the agent
+has never seen. Unknown names and thrown errors come back as
+`is_error: true` rather than crashing, so the model can recover.
+
+### Why declaring tools matters
+
+A tool call travels in a **different channel** from text. With tools declared:
+
+```
+steps:       thought, function_call
+output_text: undefined
+  -> function_call  name=get_weather  id=call_2954930  args={}
+```
+
+Without them, the model still wants to express a call and has nowhere valid to
+put it, so it improvises one as text — which the API may reject:
+
+```
+400 Model generated invalid JSON syntax and the output could not be parsed.
+```
+
+Worse, when that improvised call happens to be *well-formed* JSON, it does not
+error. It is stored as the assistant's reply and later turns imitate it, so the
+history teaches the model to keep faking calls.
+
+Declaring tools fixes both: args are generated against the schema, and the call
+never lands in `output_text`, so it cannot poison the conversation.
+
+Note `tool_choice: "none"` does **not** help. It only selects among declared
+tools, so it is a no-op when there are none — and setting it *alongside*
+declared tools reintroduces the failure, by removing the channel while the
+model still wants a call.
+
+### Known gap
+
+`stream()` ignores tools entirely, as well as the conversation. See the TODO
+on `GeminiAgent.stream`.
 
 ---
 
