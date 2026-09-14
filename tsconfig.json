@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // Environment
     "lib": ["ESNext"],
     "target": "ESNext",
     "module": "Preserve",
@@ -8,7 +7,6 @@
     "moduleDetection": "force",
     "types": ["bun"],
 
-    // Bun runs TS directly; tsc is type-check only
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -16,7 +14,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
 
-    // Strictness
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -28,7 +25,6 @@
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
 
-    // Extra safety beyond `strict`
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
